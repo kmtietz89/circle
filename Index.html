@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Circle">
+<meta name="theme-color" content="#0f0e0c">
+<title>Circle</title>
+<link rel="manifest" href="data:application/json,{%22name%22:%22Circle%22,%22short_name%22:%22Circle%22,%22display%22:%22standalone%22,%22background_color%22:%22%230f0e0c%22,%22theme_color%22:%22%230f0e0c%22}">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0e0c;
+  --bg2: #1a1814;
+  --bg3: #242018;
+  --surface: #1e1c18;
+  --surface2: #272420;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.13);
+  --text: #f0ebe0;
+  --text2: #a89e8e;
+  --text3: #6b6258;
+  --gold: #d4a84b;
+  --gold2: #f0c96a;
+  --gold-dim: rgba(212,168,75,0.15);
+  --gold-pale: rgba(212,168,75,0.08);
+  --red: #c0504a;
+  --red-dim: rgba(192,80,74,0.15);
+  --orange: #d4834b;
+  --orange-dim: rgba(212,131,75,0.15);
+  --green: #5a9e72;
+  --green-dim: rgba(90,158,114,0.15);
+  --blue: #5a82b4;
+  --blue-dim: rgba(90,130,180,0.15);
+  --purple: #8a6ab4;
+  --purple-dim: rgba(138,106,180,0.15);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%; overflow: hidden;
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+}
+
+/* ── LAYOUT ── */
+.app {
+  display: flex; flex-direction: column;
+  height: 100%; max-width: 480px; margin: 0 auto;
+  position: relative; overflow: hidden;
+}
+
+.screen {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  padding-bottom: calc(72px + var(--safe-bottom));
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding-bottom: var(--safe-bottom);
+  z-index: 100;
+}
+.nav-tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 10px 0 8px; cursor: pointer; gap: 3px;
+  color: var(--text3); transition: color 0.18s;
+  user-select: none;
+}
+.nav-tab.active { color: var(--gold); }
+.nav-tab svg { width: 22px; height: 22px; }
+.nav-tab span { font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* ── PAGE HEADER ── */
+.page-header {
+  padding: calc(var(--safe-top) + 20px) 20px 16px;
+  position: sticky; top: 0; z-index: 50;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px; font-weight: 400; color: var(--text);
+  line-height: 1.1;
+}
+.page-subtitle { font-size: 12px; color: var(--text3); margin-top: 3px; letter-spacing: 0.04em; }
+
+.header-row { display: flex; align-items: flex-start; justify-content: space-between; }
+
+/* ── BUTTONS ── */
+.btn {
+  font-family: 'Outfit', sans-serif; font-weight: 500;
+  border: none; border-radius: 10px; cursor: pointer;
+  transition: all 0.17s; font-size: 14px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-gold { background: var(--gold); color: #0f0e0c; padding: 10px 18px; }
+.btn-gold:active { background: var(--gold2); }
+.btn-ghost { background: var(--surface2); color: var(--text2); padding: 10px 16px; border: 1px solid var(--border); }
+.btn-ghost:active { background: var(--bg3); }
+.btn-sm { padding: 7px 13px; font-size: 13px; border-radius: 8px; }
+.btn-icon { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); padding: 8px; border-radius: 10px; width: 38px; height: 38px; justify-content: center; }
+.btn-icon:active { background: var(--bg3); }
+.btn-danger { background: var(--red-dim); color: var(--red); border: 1px solid rgba(192,80,74,0.25); padding: 10px 16px; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; overflow: hidden;
+}
+.card + .card { margin-top: 10px; }
+
+/* ── SECTION ── */
+.section { padding: 20px 16px 0; }
+.section-label {
+  font-size: 11px; letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--text3); font-weight: 600; margin-bottom: 10px;
+}
+
+/* ── AVATAR ── */
+.av {
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif; font-weight: 400; flex-shrink: 0;
+  font-size: 16px;
+}
+.av-lg { width: 52px; height: 52px; font-size: 20px; }
+.av-md { width: 42px; height: 42px; font-size: 16px; }
+.av-sm { width: 34px; height: 34px; font-size: 13px; }
+.av-t1 { background: var(--gold-dim); color: var(--gold); }
+.av-t2 { background: var(--blue-dim); color: var(--blue); }
+.av-t3 { background: var(--green-dim); color: var(--green); }
+.av-t4 { background: var(--purple-dim); color: var(--purple); }
+.av-t5 { background: rgba(255,255,255,0.05); color: var(--text3); }
+
+/* ── PILLS / TAGS ── */
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 500;
+}
+.pill-overdue { background: var(--red-dim); color: var(--red); }
+.pill-soon { background: var(--orange-dim); color: var(--orange); }
+.pill-ok { background: var(--green-dim); color: var(--green); }
+.pill-new { background: var(--gold-dim); color: var(--gold); }
+.pill-t1 { background: var(--gold-dim); color: var(--gold); }
+.pill-t2 { background: var(--blue-dim); color: var(--blue); }
+.pill-t3 { background: var(--green-dim); color: var(--green); }
+.pill-t4 { background: var(--purple-dim); color: var(--purple); }
+.pill-t5 { background: rgba(255,255,255,0.05); color: var(--text3); }
+
+/* ── CONTACT ROW ── */
+.contact-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 16px; cursor: pointer;
+  border-bottom: 1px solid var(--border); transition: background 0.15s;
+}
+.contact-row:last-child { border-bottom: none; }
+.contact-row:active { background: var(--surface2); }
+.cr-info { flex: 1; min-width: 0; }
+.cr-name { font-size: 15px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cr-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.cr-right { text-align: right; flex-shrink: 0; }
+.cr-days { font-family: 'Playfair Display', serif; font-size: 20px; line-height: 1; }
+.cr-days.over { color: var(--red); }
+.cr-days.warn { color: var(--orange); }
+.cr-days.ok { color: var(--green); }
+.cr-days-label { font-size: 10px; color: var(--text3); }
+
+/* ── DASHBOARD ── */
+.dash-stats {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; padding: 16px 16px 0;
+}
+.stat-tile {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px;
+}
+.stat-tile.gold-border { border-color: rgba(212,168,75,0.3); }
+.stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 38px; font-weight: 400; line-height: 1;
+}
+.stat-num.red { color: var(--red); }
+.stat-num.orange { color: var(--orange); }
+.stat-num.gold { color: var(--gold); }
+.stat-lbl { font-size: 11px; color: var(--text3); margin-top: 5px; letter-spacing: 0.05em; }
+
+/* ── INNER CIRCLE STRIP ── */
+.ic-strip {
+  display: flex; gap: 16px;
+  padding: 4px 16px 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.ic-strip::-webkit-scrollbar { display: none; }
+.ic-person {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  cursor: pointer; flex-shrink: 0; padding: 4px 0;
+}
+.ic-ring {
+  border-radius: 50%; padding: 2px;
+  background: conic-gradient(var(--gold) 0%, var(--gold2) 100%);
+}
+.ic-ring.ok { background: var(--border2); }
+.ic-ring.warn { background: conic-gradient(var(--orange) 0%, var(--orange) 100%); }
+.ic-ring.over { background: conic-gradient(var(--red) 0%, var(--red) 100%); }
+.ic-inner { background: var(--bg); border-radius: 50%; padding: 2px; }
+.ic-name { font-size: 10px; color: var(--text2); max-width: 54px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── SEARCH ── */
+.search-wrap { padding: 12px 16px; }
+.search-input {
+  width: 100%; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 14px 10px 38px;
+  font-family: 'Outfit', sans-serif; font-size: 14px; color: var(--text);
+  outline: none; transition: border-color 0.18s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b6258' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: 12px center;
+}
+.search-input:focus { border-color: var(--gold); }
+.search-input::placeholder { color: var(--text3); }
+
+/* ── FILTER CHIPS ── */
+.filter-chips {
+  display: flex; gap: 7px; padding: 0 16px 14px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.filter-chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0; padding: 6px 13px; border-radius: 20px;
+  font-size: 12px; font-weight: 500; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text2); white-space: nowrap; transition: all 0.15s;
+}
+.chip.active { background: var(--gold); color: #0f0e0c; border-color: var(--gold); }
+
+/* ── BIRTHDAY ROW ── */
+.bday-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.bday-row:last-child { border-bottom: none; }
+.bday-icon { font-size: 22px; width: 34px; text-align: center; }
+.bday-info { flex: 1; }
+.bday-name { font-size: 14px; font-weight: 500; }
+.bday-date { font-size: 12px; color: var(--text3); margin-top: 1px; }
+.bday-soon { font-size: 13px; font-weight: 600; color: var(--gold); }
+
+/* ── INBOX / NEW CONTACTS ── */
+.inbox-banner {
+  margin: 16px; background: var(--gold-pale);
+  border: 1px solid rgba(212,168,75,0.25); border-radius: 14px; padding: 16px;
+}
+.inbox-title { font-size: 13px; font-weight: 600; color: var(--gold); margin-bottom: 4px; }
+.inbox-sub { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+/* ── MODAL / SHEET ── */
+.sheet-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  z-index: 200; display: flex; flex-direction: column; justify-content: flex-end;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.sheet-overlay.open { opacity: 1; pointer-events: all; }
+
+.sheet {
+  background: var(--bg2); border-radius: 20px 20px 0 0;
+  max-height: 92vh; display: flex; flex-direction: column;
+  transform: translateY(100%); transition: transform 0.28s cubic-bezier(.32,.72,0,1);
+  padding-bottom: var(--safe-bottom);
+}
+.sheet-overlay.open .sheet { transform: translateY(0); }
+
+.sheet-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 12px auto 0; flex-shrink: 0; }
+.sheet-header { padding: 16px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.sheet-title { font-family: 'Playfair Display', serif; font-size: 21px; }
+.sheet-close { background: var(--surface2); border: none; color: var(--text2); width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+.sheet-body { overflow-y: auto; flex: 1; padding: 20px; }
+.sheet-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-shrink: 0; }
+
+/* ── FORMS ── */
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); font-weight: 600; margin-bottom: 6px; }
+.field input, .field select, .field textarea {
+  width: 100%; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 11px 14px;
+  font-family: 'Outfit', sans-serif; font-size: 14px; color: var(--text);
+  outline: none; transition: border-color 0.18s; appearance: none;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--gold); }
+.field input::placeholder, .field textarea::placeholder { color: var(--text3); }
+.field textarea { resize: none; min-height: 90px; line-height: 1.5; }
+.field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6258' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.method-btn {
+  padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text2); font-size: 13px;
+  cursor: pointer; text-align: left; font-family: 'Outfit', sans-serif;
+  transition: all 0.15s;
+}
+.method-btn.on { background: var(--gold-dim); border-color: rgba(212,168,75,0.4); color: var(--gold); }
+
+/* ── TIER SELECTOR ── */
+.tier-grid { display: flex; flex-direction: column; gap: 8px; }
+.tier-opt {
+  padding: 13px 14px; border-radius: 12px; border: 1px solid var(--border);
+  background: var(--surface); cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; gap: 12px;
+}
+.tier-opt.selected { border-color: var(--gold); background: var(--gold-pale); }
+.tier-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.tier-opt-text { flex: 1; }
+.tier-opt-name { font-size: 14px; font-weight: 500; }
+.tier-opt-desc { font-size: 11px; color: var(--text3); margin-top: 1px; }
+.tier-opt-freq { font-size: 11px; color: var(--text3); font-weight: 500; }
+
+/* ── DETAIL VIEW ── */
+.detail-hero { padding: 24px 20px 20px; display: flex; gap: 16px; align-items: flex-start; }
+.detail-name { font-family: 'Playfair Display', serif; font-size: 26px; line-height: 1.1; }
+.detail-rel { font-size: 13px; color: var(--text3); margin-top: 3px; }
+.detail-pills { display: flex; gap: 7px; margin-top: 10px; flex-wrap: wrap; }
+.detail-actions { display: flex; gap: 8px; padding: 0 20px 20px; }
+.detail-section { border-top: 1px solid var(--border); padding: 18px 20px; }
+.detail-section-title { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); font-weight: 600; margin-bottom: 12px; }
+.info-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 14px; }
+.info-row:last-child { margin-bottom: 0; }
+.info-icon { width: 28px; text-align: center; font-size: 16px; flex-shrink: 0; }
+.info-val { color: var(--text2); }
+
+.interaction-entry { display: flex; gap: 10px; margin-bottom: 10px; }
+.ie-icon { font-size: 18px; width: 28px; text-align: center; flex-shrink: 0; padding-top: 1px; }
+.ie-body { flex: 1; }
+.ie-date { font-size: 11px; color: var(--text3); }
+.ie-note { font-size: 13px; color: var(--text2); margin-top: 2px; line-height: 1.4; }
+
+/* ── IMPORT ── */
+.import-drop {
+  border: 2px dashed var(--border2); border-radius: 16px;
+  padding: 40px 24px; text-align: center; cursor: pointer;
+  transition: all 0.2s; margin-bottom: 20px;
+}
+.import-drop:hover, .import-drop.drag { border-color: var(--gold); background: var(--gold-pale); }
+.import-drop-icon { font-size: 40px; margin-bottom: 12px; }
+.import-drop-text { font-size: 15px; color: var(--text2); line-height: 1.5; }
+.import-drop-sub { font-size: 12px; color: var(--text3); margin-top: 6px; }
+
+.import-preview { }
+.import-contact-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px; border-radius: 10px; margin-bottom: 6px;
+  background: var(--surface); border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.15s;
+}
+.import-contact-item.selected { background: var(--gold-pale); border-color: rgba(212,168,75,0.4); }
+.import-contact-item.selected .ic-check { color: var(--gold); }
+.ic-check { color: var(--text3); font-size: 18px; margin-left: auto; }
+.import-actions { display: flex; gap: 8px; margin-bottom: 16px; }
+
+/* ── ONBOARD ── */
+.onboard-screen {
+  position: fixed; inset: 0; background: var(--bg);
+  z-index: 500; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 40px 28px; text-align: center;
+}
+.onboard-logo { font-family: 'Playfair Display', serif; font-size: 52px; color: var(--gold); margin-bottom: 8px; }
+.onboard-tagline { font-size: 15px; color: var(--text2); line-height: 1.6; max-width: 300px; margin: 0 auto 40px; }
+.onboard-steps { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 340px; margin-bottom: 32px; }
+.onboard-step { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; text-align: left; display: flex; gap: 14px; align-items: flex-start; }
+.onboard-step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--gold-dim); color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.onboard-step-text { font-size: 13px; color: var(--text2); line-height: 1.5; }
+.onboard-step-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+
+/* ── INSTALL BANNER ── */
+.install-banner {
+  margin: 16px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 14px 16px;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.install-close { margin-left: auto; background: none; border: none; color: var(--text3); font-size: 18px; cursor: pointer; padding: 0; line-height: 1; }
+
+/* ── EMPTY STATE ── */
+.empty { text-align: center; padding: 48px 20px; color: var(--text3); }
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-text { font-size: 15px; }
+.empty-sub { font-size: 13px; margin-top: 6px; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 0; }
+</style>
+</head>
+<body>
+
+<!-- ONBOARD -->
+<div class="onboard-screen" id="onboard" style="display:none">
+  <div class="onboard-logo">◎</div>
+  <div style="font-family:'Playfair Display',serif;font-size:32px;margin-bottom:10px">Circle</div>
+  <div class="onboard-tagline">Your personal network, intentionally kept. Stay meaningfully connected with the people who matter most.</div>
+  <div class="onboard-steps">
+    <div class="onboard-step">
+      <div class="onboard-step-num">1</div>
+      <div class="onboard-step-text"><div class="onboard-step-title">Import or add contacts</div>Export your phone contacts as a .vcf file, or add people manually.</div>
+    </div>
+    <div class="onboard-step">
+      <div class="onboard-step-num">2</div>
+      <div class="onboard-step-text"><div class="onboard-step-title">Set your Inner Circle</div>Choose who you want to prioritize and how often to stay in touch.</div>
+    </div>
+    <div class="onboard-step">
+      <div class="onboard-step-num">3</div>
+      <div class="onboard-step-text"><div class="onboard-step-title">Log interactions</div>After reaching out, log it. Circle tells you who's next.</div>
+    </div>
+  </div>
+  <button class="btn btn-gold" style="width:100%;max-width:340px;justify-content:center;padding:14px" onclick="dismissOnboard()">Get Started →</button>
+</div>
+
+<!-- APP -->
+<div class="app">
+
+  <!-- SCREENS -->
+  <!-- ── DASHBOARD ── -->
+  <div class="screen" id="screen-home" style="display:none">
+    <div class="page-header">
+      <div class="header-row">
+        <div>
+          <div class="page-title">Good <span id="time-greet">morning</span> ◎</div>
+          <div class="page-subtitle" id="today-date"></div>
+        </div>
+        <button class="btn btn-icon" onclick="openSheet('import-sheet')" title="Import contacts">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="install-banner-wrap"></div>
+
+    <!-- Stats -->
+    <div class="dash-stats">
+      <div class="stat-tile gold-border">
+        <div class="stat-num gold" id="stat-total">0</div>
+        <div class="stat-lbl">Total Contacts</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-num red" id="stat-overdue">0</div>
+        <div class="stat-lbl">Need Attention</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-num orange" id="stat-soon">0</div>
+        <div class="stat-lbl">Due This Week</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-num" id="stat-bdays">0</div>
+        <div class="stat-lbl">Birthdays (30d)</div>
+      </div>
+    </div>
+
+    <!-- Inner Circle -->
+    <div class="section">
+      <div class="section-label">Inner Circle</div>
+    </div>
+    <div class="ic-strip" id="ic-strip"></div>
+
+    <!-- New contacts to place -->
+    <div id="inbox-banner-wrap"></div>
+
+    <!-- Overdue -->
+    <div class="section">
+      <div class="section-label">Reach Out Now</div>
+    </div>
+    <div class="card" style="margin:0 16px 10px" id="dash-overdue-card">
+      <div id="dash-overdue-list"></div>
+    </div>
+
+    <!-- Birthdays -->
+    <div class="section">
+      <div class="section-label">Upcoming Birthdays</div>
+    </div>
+    <div class="card" style="margin:0 16px 24px" id="dash-bday-card">
+      <div id="dash-bday-list"></div>
+    </div>
+  </div>
+
+  <!-- ── CONTACTS ── -->
+  <div class="screen" id="screen-contacts" style="display:none">
+    <div class="page-header">
+      <div class="header-row">
+        <div class="page-title">Contacts</div>
+        <button class="btn btn-gold btn-sm" onclick="openAddContact()">+ Add</button>
+      </div>
+    </div>
+    <div class="search-wrap">
+      <input class="search-input" type="search" placeholder="Search…" oninput="doSearch(this.value)" id="contact-search">
+    </div>
+    <div class="filter-chips" id="filter-chips">
+      <div class="chip active" onclick="setFilter('all',this)">All</div>
+      <div class="chip" onclick="setFilter('1',this)">⭑ Inner Circle</div>
+      <div class="chip" onclick="setFilter('2',this)">Close Friends</div>
+      <div class="chip" onclick="setFilter('3',this)">Friends</div>
+      <div class="chip" onclick="setFilter('4',this)">Extended</div>
+      <div class="chip" onclick="setFilter('5',this)">Acquaintances</div>
+      <div class="chip" onclick="setFilter('new',this)">🆕 Unsorted</div>
+    </div>
+    <div class="card" style="margin:0 16px 16px">
+      <div id="contacts-list"></div>
+    </div>
+  </div>
+
+  <!-- ── REACH OUT ── -->
+  <div class="screen" id="screen-reach" style="display:none">
+    <div class="page-header">
+      <div class="page-title">Reach Out</div>
+      <div class="page-subtitle">Sorted by priority · overdue first</div>
+    </div>
+    <div class="card" style="margin:16px 16px 0">
+      <div id="reach-overdue-section"></div>
+    </div>
+    <div style="height:8px"></div>
+    <div class="card" style="margin:0 16px 0">
+      <div id="reach-soon-section"></div>
+    </div>
+    <div style="height:8px"></div>
+    <div class="card" style="margin:0 16px 0">
+      <div id="reach-ok-section"></div>
+    </div>
+    <div style="height:32px"></div>
+  </div>
+
+  <!-- ── BIRTHDAYS ── -->
+  <div class="screen" id="screen-bdays" style="display:none">
+    <div class="page-header">
+      <div class="page-title">Birthdays</div>
+      <div class="page-subtitle">Only contacts with birthdays added</div>
+    </div>
+    <div class="card" style="margin:16px 16px 24px">
+      <div id="bdays-list"></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <div class="nav-tab active" onclick="switchTab('home',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Home</span>
+    </div>
+    <div class="nav-tab" onclick="switchTab('contacts',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Contacts</span>
+    </div>
+    <div class="nav-tab" onclick="switchTab('reach',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>Reach Out</span>
+    </div>
+    <div class="nav-tab" onclick="switchTab('bdays',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Birthdays</span>
+    </div>
+  </nav>
+</div>
+
+<!-- ════════════════════════════════ SHEETS ════════════════════════════════ -->
+
+<!-- ADD/EDIT CONTACT -->
+<div class="sheet-overlay" id="contact-sheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title" id="contact-sheet-title">New Contact</div>
+      <button class="sheet-close" onclick="closeSheet('contact-sheet')">✕</button>
+    </div>
+    <div class="sheet-body">
+
+      <div class="field-row">
+        <div class="field"><label>First Name</label><input id="f-first" placeholder="Jane" type="text"></div>
+        <div class="field"><label>Last Name</label><input id="f-last" placeholder="Smith" type="text"></div>
+      </div>
+      <div class="field"><label>Relationship</label><input id="f-rel" placeholder="e.g. College friend, Sister, Mentor"></div>
+      <div class="field-row">
+        <div class="field"><label>Email</label><input id="f-email" type="email" placeholder="jane@…"></div>
+        <div class="field"><label>Phone</label><input id="f-phone" type="tel" placeholder="+1 555…"></div>
+      </div>
+      <div class="field"><label>Birthday</label><input id="f-birthday" type="date"></div>
+
+      <div class="field">
+        <label>Priority Tier</label>
+        <div class="tier-grid" id="tier-grid">
+          <div class="tier-opt" data-tier="1" onclick="selectTier(1)">
+            <div class="tier-dot" style="background:var(--gold)"></div>
+            <div class="tier-opt-text"><div class="tier-opt-name">⭑ Inner Circle</div><div class="tier-opt-desc">Most important — family, closest friends</div></div>
+            <div class="tier-opt-freq">Every 2 wks</div>
+          </div>
+          <div class="tier-opt" data-tier="2" onclick="selectTier(2)">
+            <div class="tier-dot" style="background:var(--blue)"></div>
+            <div class="tier-opt-text"><div class="tier-opt-name">Close Friends</div><div class="tier-opt-desc">People you care deeply about</div></div>
+            <div class="tier-opt-freq">Monthly</div>
+          </div>
+          <div class="tier-opt" data-tier="3" onclick="selectTier(3)">
+            <div class="tier-dot" style="background:var(--green)"></div>
+            <div class="tier-opt-text"><div class="tier-opt-name">Friends</div><div class="tier-opt-desc">Good friends, stay connected</div></div>
+            <div class="tier-opt-freq">Quarterly</div>
+          </div>
+          <div class="tier-opt" data-tier="4" onclick="selectTier(4)">
+            <div class="tier-dot" style="background:var(--purple)"></div>
+            <div class="tier-opt-text"><div class="tier-opt-name">Extended Network</div><div class="tier-opt-desc">Colleagues, alumni, distant family</div></div>
+            <div class="tier-opt-freq">Every 6 mo</div>
+          </div>
+          <div class="tier-opt" data-tier="5" onclick="selectTier(5)">
+            <div class="tier-dot" style="background:var(--text3)"></div>
+            <div class="tier-opt-text"><div class="tier-opt-name">Acquaintances</div><div class="tier-opt-desc">Keep on radar, low frequency</div></div>
+            <div class="tier-opt-freq">Yearly</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Custom Frequency (optional)</label>
+        <select id="f-freq">
+          <option value="auto">Auto — use tier default</option>
+          <option value="7">Weekly</option>
+          <option value="14">Every 2 weeks</option>
+          <option value="30">Monthly</option>
+          <option value="45">Every 45 days</option>
+          <option value="60">Every 2 months</option>
+          <option value="90">Quarterly</option>
+          <option value="120">Every 4 months</option>
+          <option value="180">Every 6 months</option>
+          <option value="365">Yearly</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Preferred Contact Methods</label>
+        <div class="method-grid">
+          <button class="method-btn" data-method="text" onclick="toggleMethod(this)">📱 Text / Call</button>
+          <button class="method-btn" data-method="email" onclick="toggleMethod(this)">✉️ Email</button>
+          <button class="method-btn" data-method="inperson" onclick="toggleMethod(this)">🤝 In-Person</button>
+          <button class="method-btn" data-method="social" onclick="toggleMethod(this)">💬 Social Media</button>
+        </div>
+      </div>
+
+      <div class="field"><label>Notes</label><textarea id="f-notes" placeholder="Topics they care about, how you met, things to follow up on…"></textarea></div>
+    </div>
+    <div class="sheet-footer">
+      <button class="btn btn-danger btn-sm" id="f-delete-btn" onclick="deleteContact()" style="display:none">Delete</button>
+      <button class="btn btn-ghost" onclick="closeSheet('contact-sheet')" style="flex:1">Cancel</button>
+      <button class="btn btn-gold" onclick="saveContact()" style="flex:2;justify-content:center">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACT DETAIL -->
+<div class="sheet-overlay" id="detail-sheet">
+  <div class="sheet" style="max-height:96vh">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">Contact</div>
+      <button class="sheet-close" onclick="closeSheet('detail-sheet')">✕</button>
+    </div>
+    <div class="sheet-body" id="detail-body" style="padding:0"></div>
+    <div class="sheet-footer">
+      <button class="btn btn-ghost" onclick="editFromDetail()" style="flex:1">Edit</button>
+      <button class="btn btn-gold" onclick="openLogFromDetail()" style="flex:2;justify-content:center">✓ Log Interaction</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOG INTERACTION -->
+<div class="sheet-overlay" id="log-sheet">
+  <div class="sheet" style="max-height:70vh">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">Log Interaction</div>
+      <button class="sheet-close" onclick="closeSheet('log-sheet')">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="field">
+        <label>How did you connect?</label>
+        <select id="l-type">
+          <option value="📱">📱 Text / Call</option>
+          <option value="✉️">✉️ Email</option>
+          <option value="🤝">🤝 In-Person</option>
+          <option value="💬">💬 Social Media</option>
+          <option value="🎂">🎂 Birthday message</option>
+          <option value="✦">✦ Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Date</label>
+        <input type="date" id="l-date">
+      </div>
+      <div class="field">
+        <label>Notes (optional)</label>
+        <textarea id="l-note" placeholder="What did you talk about? Anything to follow up on?" style="min-height:80px"></textarea>
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <button class="btn btn-ghost" onclick="closeSheet('log-sheet')" style="flex:1">Cancel</button>
+      <button class="btn btn-gold" onclick="saveInteraction()" style="flex:2;justify-content:center">Log It</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT -->
+<div class="sheet-overlay" id="import-sheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">Import Contacts</div>
+      <button class="sheet-close" onclick="closeSheet('import-sheet')">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div style="background:var(--surface);border-radius:12px;padding:14px;margin-bottom:20px;font-size:13px;color:var(--text2);line-height:1.6">
+        <strong style="color:var(--text)">How to export from your phone:</strong><br>
+        <strong>iPhone:</strong> Open Contacts → ⋯ → Export contacts → share the .vcf file here.<br>
+        <strong>Android:</strong> Open Contacts → Menu → Import/Export → Export to .vcf → share here.<br>
+        <strong>Google:</strong> contacts.google.com → Export → vCard.
+      </div>
+
+      <div class="import-drop" id="import-drop" onclick="document.getElementById('vcf-file').click()">
+        <div class="import-drop-icon">📂</div>
+        <div class="import-drop-text">Tap to choose your .vcf contacts file</div>
+        <div class="import-drop-sub">Supports .vcf / vCard format</div>
+        <input type="file" id="vcf-file" accept=".vcf,text/vcard" style="display:none" onchange="handleVcf(this)">
+      </div>
+
+      <div id="import-preview-wrap" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-size:13px;color:var(--text2)"><span id="import-count">0</span> contacts found</div>
+          <div class="import-actions" style="margin-bottom:0">
+            <button class="btn btn-ghost btn-sm" onclick="selectAllImport(true)">Select All</button>
+            <button class="btn btn-ghost btn-sm" onclick="selectAllImport(false)">None</button>
+          </div>
+        </div>
+        <div id="import-list" style="max-height:340px;overflow-y:auto"></div>
+      </div>
+    </div>
+    <div class="sheet-footer" id="import-footer" style="display:none">
+      <button class="btn btn-ghost" onclick="closeSheet('import-sheet')" style="flex:1">Cancel</button>
+      <button class="btn btn-gold" onclick="doImport()" style="flex:2;justify-content:center" id="import-btn">Import Selected</button>
+    </div>
+  </div>
+</div>
+
+<!-- PLACE NEW CONTACT (tier assignment for imported) -->
+<div class="sheet-overlay" id="place-sheet">
+  <div class="sheet" style="max-height:75vh">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title" id="place-title">Where does this person fit?</div>
+      <button class="sheet-close" onclick="closeSheet('place-sheet')">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.5" id="place-sub"></div>
+      <div class="tier-grid" id="place-tier-grid">
+        <div class="tier-opt" data-tier="1" onclick="placeContactTier(1)"><div class="tier-dot" style="background:var(--gold)"></div><div class="tier-opt-text"><div class="tier-opt-name">⭑ Inner Circle</div><div class="tier-opt-desc">Most important</div></div><div class="tier-opt-freq">Every 2 wks</div></div>
+        <div class="tier-opt" data-tier="2" onclick="placeContactTier(2)"><div class="tier-dot" style="background:var(--blue)"></div><div class="tier-opt-text"><div class="tier-opt-name">Close Friends</div><div class="tier-opt-desc">Regular meaningful contact</div></div><div class="tier-opt-freq">Monthly</div></div>
+        <div class="tier-opt" data-tier="3" onclick="placeContactTier(3)"><div class="tier-dot" style="background:var(--green)"></div><div class="tier-opt-text"><div class="tier-opt-name">Friends</div><div class="tier-opt-desc">Stay connected</div></div><div class="tier-opt-freq">Quarterly</div></div>
+        <div class="tier-opt" data-tier="4" onclick="placeContactTier(4)"><div class="tier-dot" style="background:var(--purple)"></div><div class="tier-opt-text"><div class="tier-opt-name">Extended Network</div><div class="tier-opt-desc">Colleagues, distant contacts</div></div><div class="tier-opt-freq">Every 6 mo</div></div>
+        <div class="tier-opt" data-tier="5" onclick="placeContactTier(5)"><div class="tier-dot" style="background:var(--text3)"></div><div class="tier-opt-text"><div class="tier-opt-name">Acquaintances</div><div class="tier-opt-desc">Low frequency check-ins</div></div><div class="tier-opt-freq">Yearly</div></div>
+        <div class="tier-opt" data-tier="skip" onclick="placeContactTier('skip')"><div class="tier-dot" style="background:var(--text3);opacity:.4"></div><div class="tier-opt-text"><div class="tier-opt-name" style="color:var(--text3)">Skip for now</div><div class="tier-opt-desc">Decide later</div></div><div class="tier-opt-freq"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════
+const TIER_FREQ = { '1':14,'2':30,'3':90,'4':180,'5':365 };
+const TIER_NAMES = { '1':'Inner Circle','2':'Close Friend','3':'Friend','4':'Extended','5':'Acquaintance' };
+const TIER_COLORS = { '1':'var(--gold)','2':'var(--blue)','3':'var(--green)','4':'var(--purple)','5':'var(--text3)' };
+
+function load() { try { return JSON.parse(localStorage.getItem('circle_v2')||'[]'); } catch(e){return[];} }
+function save() { localStorage.setItem('circle_v2', JSON.stringify(contacts)); }
+
+let contacts = load();
+let editingId = null;
+let detailId = null;
+let selectedTier = 2;
+let currentFilter = 'all';
+let currentSearch = '';
+let importQueue = []; // contacts pending tier assignment
+let importQueueIdx = 0;
+let parsedImports = [];
+let selectedImports = new Set();
+
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
+const initials = c => ((c.first||'?')[0]+(c.last||'')[0]||'').toUpperCase();
+const getFreq = c => c.freq && c.freq!=='auto' ? +c.freq : (TIER_FREQ[c.tier]||90);
+
+function daysSince(c) {
+  if (!c.interactions?.length) return null;
+  const last = c.interactions.map(i=>new Date(i.date)).sort((a,b)=>b-a)[0];
+  return Math.floor((new Date()-last)/86400000);
+}
+function daysOverdue(c) {
+  const f=getFreq(c), d=daysSince(c);
+  return d===null ? f : d-f;
+}
+function statusOf(c) {
+  const o=daysOverdue(c);
+  if(o>0) return {cls:'over',label:`${o}d overdue`,pill:'pill-overdue'};
+  if(o>-7) return {cls:'warn',label:'Due soon',pill:'pill-soon'};
+  return {cls:'ok',label:'Up to date',pill:'pill-ok'};
+}
+function freqLabel(d) {
+  if(d<=7)return'Weekly';if(d<=14)return'Every 2 wks';if(d<=31)return'Monthly';
+  if(d<=62)return'Every 2 mo';if(d<=93)return'Quarterly';if(d<=186)return'Every 6 mo';return'Yearly';
+}
+function upcomingBday(bday) {
+  if(!bday)return null;
+  const [,m,d]=bday.split('-').map(Number);
+  const today=new Date();
+  let next=new Date(today.getFullYear(),m-1,d);
+  if(next<today)next.setFullYear(today.getFullYear()+1);
+  return Math.floor((next-today)/86400000);
+}
+function formatBday(bday) {
+  if(!bday)return'';
+  const [,m,d]=bday.split('-').map(Number);
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[m-1]} ${d}`;
+}
+function fmtDate(s) {
+  if(!s)return'';
+  return new Date(s+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function avClass(tier) { return `av-t${tier||5}`; }
+function pillClass(tier) { return `pill-t${tier||5}`; }
+
+// ═══════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════
+let currentTab = 'home';
+
+function switchTab(name, el) {
+  document.querySelectorAll('.screen').forEach(s=>s.style.display='none');
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('screen-'+name).style.display='block';
+  el.classList.add('active');
+  currentTab = name;
+  if(name==='home') renderHome();
+  if(name==='contacts') renderContacts();
+  if(name==='reach') renderReach();
+  if(name==='bdays') renderBdays();
+}
+
+// ═══════════════════════════════════════════════
+// SHEETS
+// ═══════════════════════════════════════════════
+function openSheet(id) { document.getElementById(id).classList.add('open'); }
+function closeSheet(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.sheet-overlay').forEach(el=>{
+  el.addEventListener('click',e=>{ if(e.target===el) closeSheet(el.id); });
+});
+
+// ═══════════════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════════════
+function renderHome() {
+  // Greeting
+  const h = new Date().getHours();
+  document.getElementById('time-greet').textContent = h<12?'morning':h<17?'afternoon':'evening';
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+
+  // Stats
+  const total=contacts.length;
+  const overdue=contacts.filter(c=>daysOverdue(c)>0).length;
+  const soon=contacts.filter(c=>{const o=daysOverdue(c);return o<=0&&o>-7;}).length;
+  const bdays=contacts.filter(c=>c.birthday&&upcomingBday(c.birthday)<=30).length;
+  document.getElementById('stat-total').textContent=total;
+  document.getElementById('stat-overdue').textContent=overdue;
+  document.getElementById('stat-soon').textContent=soon;
+  document.getElementById('stat-bdays').textContent=bdays;
+
+  // Inner Circle strip
+  const ic = contacts.filter(c=>c.tier==='1').sort((a,b)=>daysOverdue(b)-daysOverdue(a));
+  const strip = document.getElementById('ic-strip');
+  if(!ic.length) {
+    strip.innerHTML=`<div style="padding:8px 0;font-size:13px;color:var(--text3)">No Inner Circle contacts yet. Add someone!</div>`;
+  } else {
+    strip.innerHTML = ic.map(c=>{
+      const o=daysOverdue(c);
+      const ringCls = o>0?'over':o>-7?'warn':'ok';
+      return `<div class="ic-person" onclick="openDetail('${c.id}')">
+        <div class="ic-ring ${ringCls}"><div class="ic-inner"><div class="av av-md av-t1">${initials(c)}</div></div></div>
+        <div class="ic-name">${c.first}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Inbox banner - unsorted contacts
+  const unsorted = contacts.filter(c=>!c.tier||c.tier==='new');
+  const ibw = document.getElementById('inbox-banner-wrap');
+  if(unsorted.length) {
+    ibw.innerHTML=`<div class="inbox-banner" onclick="startPlaceQueue()" style="cursor:pointer">
+      <div class="inbox-title">✦ ${unsorted.length} contact${unsorted.length>1?'s':''} waiting to be sorted</div>
+      <div class="inbox-sub">Tap to assign each person to a tier so Circle knows how often to remind you to reach out.</div>
+    </div>`;
+  } else { ibw.innerHTML=''; }
+
+  // Overdue list
+  const overdueList = contacts.filter(c=>c.tier&&c.tier!=='new'&&daysOverdue(c)>0)
+    .sort((a,b)=>+a.tier-+b.tier||daysOverdue(b)-daysOverdue(a)).slice(0,6);
+  const dol=document.getElementById('dash-overdue-list');
+  if(!overdueList.length) {
+    dol.innerHTML=`<div class="empty"><div class="empty-icon">✓</div><div class="empty-text">All caught up!</div><div class="empty-sub">No one is overdue.</div></div>`;
+  } else {
+    dol.innerHTML=overdueList.map(c=>contactRowHTML(c)).join('');
+  }
+
+  // Birthdays
+  const bdList=contacts.filter(c=>c.birthday&&upcomingBday(c.birthday)<=30).sort((a,b)=>upcomingBday(a.birthday)-upcomingBday(b.birthday));
+  const dbl=document.getElementById('dash-bday-list');
+  if(!bdList.length) {
+    dbl.innerHTML=`<div class="empty"><div class="empty-icon">◇</div><div class="empty-text">No birthdays in 30 days</div></div>`;
+  } else {
+    dbl.innerHTML=bdList.map(c=>bdayRowHTML(c)).join('');
+  }
+}
+
+function contactRowHTML(c) {
+  const st=statusOf(c);
+  const o=daysOverdue(c);
+  return `<div class="contact-row" onclick="openDetail('${c.id}')">
+    <div class="av av-md ${avClass(c.tier)}">${initials(c)}</div>
+    <div class="cr-info">
+      <div class="cr-name">${c.first} ${c.last||''}</div>
+      <div class="cr-sub">${TIER_NAMES[c.tier]||'Unsorted'}${c.rel?` · ${c.rel}`:''}</div>
+    </div>
+    <div class="cr-right">
+      ${o>0?`<div class="cr-days over">${o}d</div><div class="cr-days-label">overdue</div>`:
+        o>-7?`<div class="cr-days warn">Soon</div><div class="cr-days-label">this week</div>`:
+        `<div class="cr-days ok">✓</div><div class="cr-days-label">up to date</div>`}
+    </div>
+  </div>`;
+}
+
+function bdayRowHTML(c) {
+  const d=upcomingBday(c.birthday);
+  const label=d===0?'🎉 Today!':d===1?'Tomorrow':`In ${d} days`;
+  return `<div class="bday-row" onclick="openDetail('${c.id}')">
+    <div class="bday-icon">${d<=2?'🎂':'◇'}</div>
+    <div class="bday-info"><div class="bday-name">${c.first} ${c.last||''}</div><div class="bday-date">${formatBday(c.birthday)}</div></div>
+    <div class="bday-soon">${label}</div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════
+// CONTACTS
+// ═══════════════════════════════════════════════
+function renderContacts() {
+  let list=[...contacts];
+  if(currentFilter==='new') list=list.filter(c=>!c.tier||c.tier==='new');
+  else if(currentFilter!=='all') list=list.filter(c=>c.tier===currentFilter);
+  if(currentSearch) {
+    const q=currentSearch.toLowerCase();
+    list=list.filter(c=>`${c.first} ${c.last} ${c.rel} ${c.notes}`.toLowerCase().includes(q));
+  }
+  list.sort((a,b)=>(+a.tier||9)-(+b.tier||9)||`${a.first}${a.last}`.localeCompare(`${b.first}${b.last}`));
+  const el=document.getElementById('contacts-list');
+  if(!list.length) { el.innerHTML=`<div class="empty"><div class="empty-icon">✦</div><div class="empty-text">No contacts</div></div>`; return; }
+  el.innerHTML=list.map(c=>contactRowHTML(c)).join('');
+}
+
+function setFilter(val,el) {
+  currentFilter=val;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderContacts();
+}
+
+function doSearch(val) {
+  currentSearch=val;
+  renderContacts();
+}
+
+// ═══════════════════════════════════════════════
+// REACH OUT
+// ═══════════════════════════════════════════════
+function renderReach() {
+  const sorted=contacts.filter(c=>c.tier&&c.tier!=='new').map(c=>({c,o:daysOverdue(c)}));
+  const over=sorted.filter(x=>x.o>0).sort((a,b)=>+a.c.tier-+b.c.tier||b.o-a.o);
+  const soon=sorted.filter(x=>x.o<=0&&x.o>-14).sort((a,b)=>+a.c.tier-+b.c.tier||b.o-a.o);
+  const ok=sorted.filter(x=>x.o<=-14).sort((a,b)=>+a.c.tier-+b.c.tier||b.o-a.o);
+
+  const section=(id,label,items,color)=>{
+    const el=document.getElementById(id);
+    if(!items.length){el.innerHTML=`<div class="empty" style="padding:20px"><div class="empty-icon" style="font-size:28px">${color==='red'?'✓':'—'}</div><div class="empty-text" style="font-size:13px">None</div></div>`;return;}
+    el.innerHTML=`<div style="padding:12px 16px 4px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--${color});font-weight:600">${label} (${items.length})</div>`+items.map(x=>contactRowHTML(x.c)).join('');
+  };
+  section('reach-overdue-section','Overdue',over,'red');
+  section('reach-soon-section','Due Soon',soon,'orange');
+  section('reach-ok-section','Up to Date',ok,'green');
+}
+
+// ═══════════════════════════════════════════════
+// BIRTHDAYS
+// ═══════════════════════════════════════════════
+function renderBdays() {
+  const list=contacts.filter(c=>c.birthday).sort((a,b)=>(upcomingBday(a.birthday)||999)-(upcomingBday(b.birthday)||999));
+  const el=document.getElementById('bdays-list');
+  if(!list.length){el.innerHTML=`<div class="empty"><div class="empty-icon">◇</div><div class="empty-text">No birthdays added yet</div><div class="empty-sub">Edit contacts to add birthdays</div></div>`;return;}
+  el.innerHTML=list.map(c=>bdayRowHTML(c)).join('');
+}
+
+// ═══════════════════════════════════════════════
+// DETAIL
+// ═══════════════════════════════════════════════
+function openDetail(id) {
+  const c=contacts.find(x=>x.id===id);
+  if(!c)return;
+  detailId=id;
+  const st=statusOf(c);
+  const interactions=(c.interactions||[]).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const methods=(c.methods||[]).map(m=>({text:'📱 Text/Call',email:'✉️ Email',inperson:'🤝 In-Person',social:'💬 Social'}[m]||m)).join(' · ');
+
+  document.getElementById('detail-body').innerHTML=`
+    <div class="detail-hero">
+      <div class="av av-lg ${avClass(c.tier)}">${initials(c)}</div>
+      <div style="flex:1">
+        <div class="detail-name">${c.first} ${c.last||''}</div>
+        <div class="detail-rel">${c.rel||''}</div>
+        <div class="detail-pills">
+          <span class="pill ${pillClass(c.tier)}">${TIER_NAMES[c.tier]||'Unsorted'}</span>
+          <span class="pill ${st.pill}">${st.label}</span>
+          ${c.tier?`<span class="pill" style="background:var(--surface2);color:var(--text3)">${freqLabel(getFreq(c))}</span>`:''}
+        </div>
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Contact Info</div>
+      ${c.email?`<div class="info-row"><span class="info-icon">✉️</span><a href="mailto:${c.email}" style="color:var(--gold);text-decoration:none">${c.email}</a></div>`:''}
+      ${c.phone?`<div class="info-row"><span class="info-icon">📱</span><a href="tel:${c.phone}" style="color:var(--gold);text-decoration:none">${c.phone}</a></div>`:''}
+      ${c.birthday?`<div class="info-row"><span class="info-icon">🎂</span><span class="info-val">${formatBday(c.birthday)}${upcomingBday(c.birthday)<=30?' · <span style="color:var(--gold)">Coming up!</span>':''}</span></div>`:''}
+      ${methods?`<div class="info-row"><span class="info-icon">💬</span><span class="info-val">${methods}</span></div>`:''}
+    </div>
+    ${c.notes?`<div class="detail-section"><div class="detail-section-title">Notes</div><div style="font-size:14px;color:var(--text2);line-height:1.6">${c.notes.replace(/\n/g,'<br>')}</div></div>`:''}
+    <div class="detail-section">
+      <div class="detail-section-title">Interaction History (${interactions.length})</div>
+      ${interactions.length?interactions.map(i=>`
+        <div class="interaction-entry">
+          <div class="ie-icon">${i.type}</div>
+          <div class="ie-body">
+            <div class="ie-date">${fmtDate(i.date)}</div>
+            ${i.note?`<div class="ie-note">${i.note}</div>`:''}
+          </div>
+        </div>`).join(''):`<div style="font-size:13px;color:var(--text3)">No interactions logged yet.</div>`}
+    </div>
+    <div style="height:12px"></div>
+  `;
+  openSheet('detail-sheet');
+}
+
+function editFromDetail() {
+  closeSheet('detail-sheet');
+  setTimeout(()=>openEditContact(detailId),180);
+}
+
+function openLogFromDetail() {
+  closeSheet('detail-sheet');
+  setTimeout(()=>{
+    document.getElementById('l-date').value=new Date().toISOString().slice(0,10);
+    document.getElementById('l-note').value='';
+    openSheet('log-sheet');
+  },180);
+}
+
+// ═══════════════════════════════════════════════
+// ADD / EDIT
+// ═══════════════════════════════════════════════
+function openAddContact() {
+  editingId=null; selectedTier=2;
+  document.getElementById('contact-sheet-title').textContent='New Contact';
+  document.getElementById('f-delete-btn').style.display='none';
+  clearContactForm();
+  selectTier(2);
+  openSheet('contact-sheet');
+}
+
+function openEditContact(id) {
+  const c=contacts.find(x=>x.id===id);
+  if(!c)return;
+  editingId=id; selectedTier=+c.tier||2;
+  document.getElementById('contact-sheet-title').textContent='Edit Contact';
+  document.getElementById('f-delete-btn').style.display='block';
+  document.getElementById('f-first').value=c.first||'';
+  document.getElementById('f-last').value=c.last||'';
+  document.getElementById('f-rel').value=c.rel||'';
+  document.getElementById('f-email').value=c.email||'';
+  document.getElementById('f-phone').value=c.phone||'';
+  document.getElementById('f-birthday').value=c.birthday||'';
+  document.getElementById('f-freq').value=c.freq||'auto';
+  document.getElementById('f-notes').value=c.notes||'';
+  selectTier(+c.tier||2);
+  document.querySelectorAll('.method-btn').forEach(b=>{
+    b.classList.toggle('on',(c.methods||[]).includes(b.dataset.method));
+  });
+  openSheet('contact-sheet');
+}
+
+function clearContactForm() {
+  ['f-first','f-last','f-rel','f-email','f-phone','f-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-birthday').value='';
+  document.getElementById('f-freq').value='auto';
+  document.querySelectorAll('.method-btn').forEach(b=>b.classList.remove('on'));
+}
+
+function selectTier(n) {
+  selectedTier=n;
+  document.querySelectorAll('#tier-grid .tier-opt').forEach(el=>{
+    el.classList.toggle('selected',+el.dataset.tier===n);
+  });
+}
+
+function toggleMethod(btn) { btn.classList.toggle('on'); }
+
+function saveContact() {
+  const first=document.getElementById('f-first').value.trim();
+  if(!first){alert('Please enter a first name.');return;}
+  const methods=[...document.querySelectorAll('.method-btn.on')].map(b=>b.dataset.method);
+  const data={
+    first, last:document.getElementById('f-last').value.trim(),
+    rel:document.getElementById('f-rel').value.trim(),
+    email:document.getElementById('f-email').value.trim(),
+    phone:document.getElementById('f-phone').value.trim(),
+    birthday:document.getElementById('f-birthday').value,
+    tier:String(selectedTier),
+    freq:document.getElementById('f-freq').value,
+    notes:document.getElementById('f-notes').value.trim(),
+    methods,
+  };
+  if(editingId) {
+    const idx=contacts.findIndex(c=>c.id===editingId);
+    contacts[idx]={...contacts[idx],...data};
+  } else {
+    contacts.push({id:uid(),interactions:[],...data});
+  }
+  save(); closeSheet('contact-sheet'); refresh();
+}
+
+function deleteContact() {
+  if(!editingId)return;
+  if(!confirm('Delete this contact?'))return;
+  contacts=contacts.filter(c=>c.id!==editingId);
+  save(); closeSheet('contact-sheet'); refresh();
+}
+
+// ═══════════════════════════════════════════════
+// LOG
+// ═══════════════════════════════════════════════
+function saveInteraction() {
+  const c=contacts.find(x=>x.id===detailId);
+  if(!c)return;
+  c.interactions=c.interactions||[];
+  c.interactions.push({
+    id:uid(),
+    type:document.getElementById('l-type').value,
+    date:document.getElementById('l-date').value||new Date().toISOString().slice(0,10),
+    note:document.getElementById('l-note').value.trim(),
+  });
+  save(); closeSheet('log-sheet'); refresh();
+}
+
+// ═══════════════════════════════════════════════
+// VCF IMPORT
+// ═══════════════════════════════════════════════
+function handleVcf(input) {
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>parseVcf(e.target.result);
+  reader.readAsText(file);
+}
+
+function parseVcf(text) {
+  parsedImports=[];
+  // Split by vCard boundaries
+  const cards=text.split(/BEGIN:VCARD/i).slice(1);
+  for(const card of cards) {
+    const get=(key)=>{
+      const re=new RegExp(`^${key}[^:]*:(.*)$`,'im');
+      const m=card.match(re);
+      return m?m[1].trim().replace(/\\n/g,'\n').replace(/\\,/g,','):'';
+    };
+    const getAll=(key)=>{
+      const re=new RegExp(`^${key}[^:]*:(.*)$`,'gim');
+      const matches=[...card.matchAll(re)];
+      return matches.map(m=>m[1].trim());
+    };
+
+    // Name
+    const fn=get('FN');
+    const n=get('N');
+    let first='',last='';
+    if(fn) {
+      const parts=fn.split(' ');
+      first=parts[0]; last=parts.slice(1).join(' ');
+    } else if(n) {
+      const parts=n.split(';');
+      last=parts[0]||''; first=parts[1]||'';
+    }
+    if(!first&&!last)continue;
+
+    // Email
+    const emails=getAll('EMAIL');
+    const email=emails[0]||'';
+
+    // Phone
+    const phones=getAll('TEL');
+    const phone=phones[0]||'';
+
+    // Birthday
+    let birthday='';
+    const bdRaw=get('BDAY');
+    if(bdRaw) {
+      const digits=bdRaw.replace(/\D/g,'');
+      if(digits.length>=8) birthday=`${digits.slice(0,4)}-${digits.slice(4,6)}-${digits.slice(6,8)}`;
+    }
+
+    parsedImports.push({first:first.trim(),last:last.trim(),email,phone,birthday});
+  }
+
+  // Filter out contacts already in our list
+  parsedImports=parsedImports.filter(p=>{
+    return !contacts.some(c=>c.first.toLowerCase()===p.first.toLowerCase()&&(c.last||'').toLowerCase()===(p.last||'').toLowerCase());
+  });
+
+  if(!parsedImports.length) { alert('No new contacts found in this file.'); return; }
+
+  selectedImports=new Set(parsedImports.map((_,i)=>i));
+  renderImportPreview();
+  document.getElementById('import-preview-wrap').style.display='block';
+  document.getElementById('import-footer').style.display='flex';
+  document.getElementById('import-count').textContent=parsedImports.length;
+}
+
+function renderImportPreview() {
+  document.getElementById('import-list').innerHTML=parsedImports.map((p,i)=>`
+    <div class="import-contact-item ${selectedImports.has(i)?'selected':''}" onclick="toggleImportSelect(${i})">
+      <div class="av av-sm av-t5">${((p.first||'?')[0]+(p.last||'')[0]).toUpperCase()}</div>
+      <div style="flex:1"><div style="font-size:14px;font-weight:500">${p.first} ${p.last}</div><div style="font-size:12px;color:var(--text3)">${p.email||p.phone||'No contact info'}</div></div>
+      <div class="ic-check">${selectedImports.has(i)?'✓':'○'}</div>
+    </div>`).join('');
+}
+
+function toggleImportSelect(i) {
+  if(selectedImports.has(i))selectedImports.delete(i);
+  else selectedImports.add(i);
+  renderImportPreview();
+  document.getElementById('import-btn').textContent=`Import ${selectedImports.size} Selected`;
+}
+
+function selectAllImport(all) {
+  if(all)parsedImports.forEach((_,i)=>selectedImports.add(i));
+  else selectedImports.clear();
+  renderImportPreview();
+  document.getElementById('import-btn').textContent=`Import ${selectedImports.size} Selected`;
+}
+
+function doImport() {
+  const toImport=[...selectedImports].map(i=>parsedImports[i]);
+  if(!toImport.length){alert('Select at least one contact.');return;}
+  // Add them as 'new' (unsorted) — they'll go through the placement queue
+  toImport.forEach(p=>{
+    contacts.push({id:uid(),interactions:[],...p,tier:'new',freq:'auto',methods:[],notes:'',rel:''});
+  });
+  save();
+  closeSheet('import-sheet');
+  // Reset
+  parsedImports=[]; selectedImports=new Set();
+  document.getElementById('import-preview-wrap').style.display='none';
+  document.getElementById('import-footer').style.display='none';
+  document.getElementById('vcf-file').value='';
+  // Start placement queue
+  setTimeout(()=>startPlaceQueue(),300);
+}
+
+// ═══════════════════════════════════════════════
+// PLACEMENT QUEUE
+// ═══════════════════════════════════════════════
+function startPlaceQueue() {
+  importQueue=contacts.filter(c=>c.tier==='new');
+  importQueueIdx=0;
+  if(!importQueue.length)return;
+  nextInQueue();
+}
+
+function nextInQueue() {
+  if(importQueueIdx>=importQueue.length){
+    closeSheet('place-sheet');
+    refresh();
+    return;
+  }
+  const c=importQueue[importQueueIdx];
+  document.getElementById('place-title').textContent=`Where does ${c.first} fit?`;
+  document.getElementById('place-sub').textContent=`${importQueueIdx+1} of ${importQueue.length} — Assign a tier so Circle knows how often to remind you to reach out.`;
+  // Reset selection
+  document.querySelectorAll('#place-tier-grid .tier-opt').forEach(el=>el.classList.remove('selected'));
+  openSheet('place-sheet');
+}
+
+function placeContactTier(tier) {
+  const c=importQueue[importQueueIdx];
+  const contact=contacts.find(x=>x.id===c.id);
+  if(contact) {
+    contact.tier = tier==='skip'?'new':String(tier);
+    save();
+  }
+  importQueueIdx++;
+  // Small delay for feel
+  setTimeout(()=>{
+    if(importQueueIdx<importQueue.length){
+      nextInQueue();
+    } else {
+      closeSheet('place-sheet');
+      refresh();
+    }
+  },150);
+}
+
+// ═══════════════════════════════════════════════
+// ONBOARD
+// ═══════════════════════════════════════════════
+function dismissOnboard() {
+  localStorage.setItem('circle_onboarded','1');
+  document.getElementById('onboard').style.display='none';
+  showInstallBanner();
+}
+
+function showInstallBanner() {
+  // iOS install hint
+  const isIos=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone=window.navigator.standalone;
+  if(isIos&&!isStandalone&&!localStorage.getItem('circle_install_dismissed')) {
+    document.getElementById('install-banner-wrap').innerHTML=`
+      <div class="install-banner">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--gold);margin-bottom:4px">📲 Add to Home Screen</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.5">Tap <strong>Share</strong> → <strong>Add to Home Screen</strong> to install Circle like an app on your iPhone.</div>
+        </div>
+        <button class="install-close" onclick="this.parentElement.remove();localStorage.setItem('circle_install_dismissed','1')">✕</button>
+      </div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════
+// REFRESH
+// ═══════════════════════════════════════════════
+function refresh() {
+  if(currentTab==='home')renderHome();
+  else if(currentTab==='contacts')renderContacts();
+  else if(currentTab==='reach')renderReach();
+  else if(currentTab==='bdays')renderBdays();
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>{
+  // Show onboard or app
+  if(!localStorage.getItem('circle_onboarded')) {
+    document.getElementById('onboard').style.display='flex';
+  } else {
+    showInstallBanner();
+  }
+
+  // Show home screen
+  document.getElementById('screen-home').style.display='block';
+  renderHome();
+
+  // Drag-drop on import
+  const drop=document.getElementById('import-drop');
+  drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('drag');});
+  drop.addEventListener('dragleave',()=>drop.classList.remove('drag'));
+  drop.addEventListener('drop',e=>{
+    e.preventDefault();drop.classList.remove('drag');
+    const file=e.dataTransfer.files[0];
+    if(file){const r=new FileReader();r.onload=ev=>parseVcf(ev.target.result);r.readAsText(file);}
+  });
+});
+</script>
+</body>
+</html>
